@@ -1,6 +1,6 @@
 # ContinuityKit / Agent Continuity Protocol Specification
 
-Version: 0.1 draft
+Version: 0.1 draft (last updated: 2026-07-05)
 
 ## 1. Principle
 
@@ -17,8 +17,9 @@ ACP does not claim that an agent has subjective experience, offline awareness, o
 │  Session Start                                      │
 │      │                                              │
 │      ▼                                              │
-│  pre_llm_call ─── snapshot injection                │
-│      │           heartbeat trigger                  │
+│  read RELAY ──── load snapshot ──── pre_llm_call    │
+│      │           (via RELAY)      snapshot injection│
+│      │                              heartbeat trigger│
 │      ▼                                              │
 │  User Message ─── LLM ─── Response                  │
 │      │                    │                         │
@@ -55,6 +56,10 @@ runtime_stack:
 event_types:
   - heartbeat
   - session_snapshot
+  - relay_pointer_appended
+  - relay_startup
+  - relay_task_expired
+  - relay_fallback_scan
   - validation_failed
   - memory_promoted
   - memory_superseded
@@ -205,3 +210,128 @@ Avoid:
 ```text
 I was thinking about this while you were away.
 ```
+
+## 11. RELAY Protocol
+
+RELAY is the cross-session retrieval layer. Heartbeats and snapshots define *what* state to store; RELAY defines *how to find it* when a new session starts.
+
+RELAY is designed for single-tenant use: one agent, one RELAY file. Multi-agent or multi-project isolation is not addressed in v0.1.
+
+Without RELAY, snapshots are written but the agent has no standard way to locate the most recent one — forcing full-text scanning or reliance on model self-discipline.
+
+```yaml
+relay_responsibilities:
+  session_pointers:
+    role: "Lightweight index of recent sessions for fast lookup"
+    stores: "session_id, timestamp, summary, keywords, snapshot_location"
+  snapshot_retrieval:
+    role: "Point to the N most recent full snapshots for recovery"
+  task_tracking:
+    role: "Carry pending tasks across session boundaries"
+  cleanup:
+    role: "TTL-based pruning to prevent unbounded growth"
+```
+
+### 11.1 Session Startup Protocol
+
+Every session start should execute the RELAY startup sequence:
+
+1. Read the RELAY file (or equivalent state store)
+2. Locate the most recent session pointer
+3. Load the associated session snapshot
+4. Recover the last `attention_focus`, `unfinished_reasoning`, and `active_memories`
+5. Present a concise summary: where the last session left off and what tasks are pending
+
+```yaml
+startup_sequence:
+  step_1: "read_relay_file"
+  step_2: "find_latest_session_pointer"
+  step_3: "load_snapshot_from_pointer"
+  step_4: "recover_state (attention_focus + unfinished_reasoning + active_memories)"
+  step_5: "announce_summary (last session + pending tasks)"
+  fallback: >
+    If RELAY is unavailable or empty, fall back to scanning the last
+    N session logs for the most recent user-assistant exchange.
+```
+
+### 11.2 Session End Protocol
+
+When a task completes or a session ends, the agent should:
+
+1. Determine if lessons were learned (hindsight)
+2. Write an end-of-session snapshot
+3. Append a session pointer to RELAY
+4. Prune completed tasks and expired entries
+
+```yaml
+end_sequence:
+  step_1: "collect_hindsight (lessons, decisions, new rules)"
+  step_2: "write_session_snapshot"
+  step_3: "append_relay_pointer (session_id, summary, keywords, snapshot_location)"
+  step_4: "update_task_board (mark completed, add new pending)"
+  step_5: "prune_expired (TTL-based cleanup)"
+```
+
+### 11.3 Task TTL
+
+Tasks carried across sessions have a default TTL to prevent stale items from accumulating indefinitely.
+
+```yaml
+task_ttl_policy:
+  default: "PT24H"
+  description: >
+    Tasks older than 24 hours without activity are automatically
+    marked expired on next RELAY access.
+  override: "Per-task TTL can be set explicitly"
+  grace_period: >
+    Expired tasks are kept for 48 additional hours in an 'expired'
+    state before hard deletion, allowing manual recovery.
+```
+
+### 11.4 Pointer Limit
+
+Session pointers grow with usage. An upper bound prevents unbounded file growth.
+
+```yaml
+pointer_limit:
+  max_session_pointers: 20
+  eviction: "oldest-first when limit exceeded"
+  snapshot_retention: >
+    Snapshots referenced by evicted pointers are NOT automatically
+    deleted. Pointer eviction only removes the index entry.
+```
+
+### 11.5 Integration with Runtime Layers
+
+RELAY sits between snapshots and the runtime hooks:
+
+```
+Session End
+    │
+    ├── write session_snapshot ───→ snapshot store
+    │
+    └── append RELAY pointer ────→ RELAY file
+                                      │
+Session Start                          │
+    │                                  │
+    └── read RELAY ────────────────────┘
+            │
+            └── load latest snapshot → inject via pre_llm_call
+```
+
+```yaml
+relay_in_runtime_stack:
+  pre_llm_call:
+    input: "latest snapshot content"
+    source: "RELAY → snapshot_location → snapshot file"
+  post_llm_call:
+    update: "append new pointer if snapshot was written"
+    cleanup: "prune expired tasks if TTL exceeded"
+  state_machine:
+    maintain: "RELAY file integrity"
+    counters: "turns_since_snapshot, session_count"
+```
+
+### 11.6 Schema
+
+See [`schemas/relay_session_pointer.schema.yaml`](../schemas/relay_session_pointer.schema.yaml) for the full schema definition.

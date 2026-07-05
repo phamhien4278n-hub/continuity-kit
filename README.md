@@ -1,7 +1,8 @@
 # ContinuityKit — Give Your AI Agent a Heartbeat
 
-**让你的 AI Agent 拥有心跳。记忆不够，让 Agent 活起来。**
-**Memory is not enough. Give your agent a heartbeat.**
+> **心跳系统 · Heartbeat System · Agent Continuity Protocol · 会话指针 · Session Relay**
+> 让你的 AI Agent 拥有心跳。记忆不够，让 Agent 活起来。
+> Memory is not enough. Give your agent a heartbeat.
 
 **ContinuityKit** is a source-available toolkit and protocol for building AI agents that can pause, resume, self-check, and remember — without turning temporary thoughts into permanent truth. Think of it as a **heartbeat for any AI agent**: periodic state checkpoints that make long-running agents feel connected and auditable instead of starting from scratch every session. Framework-agnostic — works with Hermes, Claude Code, Codex, or any runtime that supports hooks.
 
@@ -42,6 +43,7 @@ ContinuityKit provides:
 
 - In-session heartbeats for periodic state calibration.
 - End-of-session snapshots for high-fidelity resume.
+- **RELAY protocol** for cross-session retrieval — pointers, snapshots, task tracking.
 - Append-only event logs for auditability.
 - Memory promotion rules to prevent temporary state from polluting long-term memory.
 - Runtime injection templates for `pre_llm_call` hooks.
@@ -114,6 +116,7 @@ schemas/
   continuity_state.schema.yaml
   heartbeat.schema.yaml
   session_snapshot.schema.yaml
+  relay_session_pointer.schema.yaml
 examples/
   pre_llm_injection.yaml
   post_llm_validation.yaml
@@ -131,7 +134,8 @@ PRIVACY.md
 2. Copy the schemas from `schemas/` into your agent runtime configuration.
 3. Implement the `pre_llm_call` hook using [`examples/pre_llm_injection.yaml`](examples/pre_llm_injection.yaml) as a template.
 4. Implement the `post_llm_call` hook using [`examples/post_llm_validation.yaml`](examples/post_llm_validation.yaml) for validation rules.
-5. Use the examples in `examples/` as integration guides for different agent types.
+5. Initialize a RELAY file using [`schemas/relay_session_pointer.schema.yaml`](schemas/relay_session_pointer.schema.yaml) as the schema.
+6. Use the examples in `examples/` as integration guides for different agent types.
 
 Reference implementations for popular agent runtimes (Hermes, Claude Code, Codex) are planned for **v0.2**.
 

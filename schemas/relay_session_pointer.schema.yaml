@@ -1,0 +1,146 @@
+id: "https://example.com/acp/schemas/relay_session_pointer.schema.yaml"
+title: "ACP RELAY Session Pointer"
+description: >
+  Cross-session retrieval index. Stores lightweight session summaries
+  and pointers to full session snapshots so the agent can locate its
+  last state on session start without scanning all historical data.
+type: object
+required:
+  - version
+  - session_pointers
+properties:
+  version:
+    type: integer
+    description: "Schema version number"
+  session_pointers:
+    type: array
+    description: "Ordered list of recent session summaries (newest first)"
+    maxItems: 20
+    items:
+      type: object
+      required:
+        - session_id
+        - timestamp
+        - summary
+        - status
+      properties:
+        session_id:
+          type: string
+          description: "Unique session identifier"
+        timestamp:
+          type: string
+          format: date-time
+          description: "Session start time"
+        end_timestamp:
+          type: string
+          format: date-time
+          description: "Session end time (if session concluded cleanly)"
+        summary:
+          type: string
+          description: "One-line summary of what the session accomplished"
+          maxLength: 200
+        keywords:
+          type: array
+          description: "Searchable keywords for discovery"
+          items:
+            type: string
+        snapshot_location:
+          type: string
+          description: >
+            Where the full session snapshot is stored. Implementation-defined
+            (e.g. relative path, DB key, log entry). Must not contain PII or
+            absolute local filesystem paths.
+        status:
+          type: string
+          enum:
+            - active
+            - completed
+            - interrupted
+          description: "Session status"
+  active_snapshots:
+    type: array
+    description: "Pointers to the most recent snapshots available for recovery"
+    maxItems: 5
+    items:
+      type: object
+      required:
+        - snapshot_id
+        - stored_at
+        - location
+      properties:
+        snapshot_id:
+          type: string
+        stored_at:
+          type: string
+          format: date-time
+        task_anchor:
+          type: string
+          description: "Copied from the snapshot for quick reference"
+        location:
+          type: string
+          description: >
+            Where the full snapshot can be read. Must not contain PII
+            or absolute local filesystem paths.
+  task_board:
+    type: object
+    description: "Cross-session task tracking"
+    properties:
+      pending:
+        type: array
+        description: "Tasks awaiting action from a prior session"
+        items:
+          type: object
+          required:
+            - id
+            - description
+            - created_at
+          properties:
+            id:
+              type: string
+            description:
+              type: string
+              maxLength: 200
+            created_at:
+              type: string
+              format: date-time
+            source_session_id:
+              type: string
+            ttl:
+              type: string
+              description: >
+                ISO 8601 duration or timestamp. Tasks exceeding TTL
+                without activity are automatically marked expired.
+                Default: 24h.
+      completed:
+        type: array
+        description: "Recently completed tasks (pruned after TTL)"
+        items:
+          type: object
+          required:
+            - id
+            - description
+            - completed_at
+          properties:
+            id:
+              type: string
+            description:
+              type: string
+            completed_at:
+              type: string
+              format: date-time
+  cleanup_policy:
+    type: object
+    description: "Rules for pruning stale entries"
+    properties:
+      task_ttl:
+        type: string
+        description: "Default task TTL (ISO 8601 duration). Default: PT24H."
+        default: "PT24H"
+      max_session_pointers:
+        type: integer
+        description: "Maximum number of session pointers to retain. Default: 20."
+        default: 20
+      auto_prune:
+        type: boolean
+        description: "Whether the runtime should auto-prune expired items. Default: true."
+        default: true
