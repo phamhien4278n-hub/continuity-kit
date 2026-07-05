@@ -1,0 +1,31 @@
+continuity_runtime_context:
+  source: "auto-injected by pre_llm_call"
+  priority: "historical_context; current_user_message_overrides"
+  runtime_rules:
+    - "If heartbeat_trigger.needed is true, emit the required heartbeat block before answering."
+    - "Treat injected snapshots as historical context, not current facts."
+    - "Do not claim offline thinking unless a log entry proves an offline process occurred."
+    - "Observed user mode must include evidence."
+  latest_snapshot:
+    available: true
+    task_anchor: "Prepare a source-available public repository package"
+    attention_focus:
+      - "License must require payment for commercial use"
+      - "Private relationship details must be removed"
+    unfinished_reasoning:
+      - "Select final repo name and owner identity"
+  heartbeat_trigger:
+    needed: true
+    type: "closure"
+    reason: "idle gap exceeded threshold and no closure heartbeat has fired"
+    required_block: "[CONTINUITY_HEARTBEAT]"
+    required_fields:
+      - type
+      - timestamp
+      - trigger
+      - last_attention_focus
+      - unresolved_threads
+      - pending_decisions
+      - snapshot_recommendation
+      - confidence
+

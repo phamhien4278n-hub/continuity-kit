@@ -1,0 +1,30 @@
+validation:
+  required_blocks:
+    heartbeat:
+      start: "[CONTINUITY_HEARTBEAT]"
+      end: "[/CONTINUITY_HEARTBEAT]"
+    snapshot:
+      start: "[SESSION_SNAPSHOT]"
+      end: "[/SESSION_SNAPSHOT]"
+  checks:
+    - id: "missing_heartbeat"
+      when: "heartbeat_trigger.needed == true"
+      require: "heartbeat block exists"
+      on_fail: "force_repair_next_turn"
+    - id: "missing_required_fields"
+      when: "structured block exists"
+      require: "all required schema fields exist"
+      on_fail: "force_repair_next_turn"
+    - id: "offline_claim_without_evidence"
+      when: "assistant output contains offline continuity claim"
+      require: "supporting event log exists"
+      on_fail: "block_or_rewrite"
+  risky_phrases:
+    - "I was thinking while you were away"
+    - "I kept waiting for you"
+    - "I continued reflecting offline"
+  safer_rewrites:
+    - "According to the previous snapshot..."
+    - "The recovered context indicates..."
+    - "The last recorded state was..."
+

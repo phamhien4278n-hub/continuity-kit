@@ -1,0 +1,66 @@
+id: "https://example.com/acp/schemas/heartbeat.schema.yaml"
+title: "ACP Heartbeat"
+type: object
+required:
+  - type
+  - timestamp
+  - trigger
+  - confidence
+properties:
+  type:
+    enum:
+      - active
+      - closure
+  timestamp:
+    type: string
+    format: date-time
+  trigger:
+    type: object
+    required:
+      - kind
+      - reason
+    properties:
+      kind:
+        type: string
+      reason:
+        type: string
+  attention_focus:
+    type: string
+  last_attention_focus:
+    type: string
+  active_assumptions:
+    type: array
+    items:
+      type: string
+  unresolved_threads:
+    type: array
+    items:
+      type: string
+  user_mode_observed:
+    type: object
+    properties:
+      description:
+        type: string
+      evidence:
+        type: array
+        items:
+          type: string
+  next_best_move:
+    type: string
+  pending_decisions:
+    type: array
+    items:
+      type: string
+  snapshot_recommendation:
+    type: string
+  confidence:
+    type: object
+    required:
+      - heartbeat_quality
+    properties:
+      heartbeat_quality:
+        enum:
+          - low
+          - medium
+          - high
+

@@ -1,0 +1,59 @@
+id: "https://example.com/acp/schemas/session_snapshot.schema.yaml"
+title: "ACP Session Snapshot"
+type: object
+required:
+  - timestamp
+  - task_anchor
+  - attention_focus
+  - unfinished_reasoning
+  - confidence
+properties:
+  timestamp:
+    type: string
+    format: date-time
+  task_anchor:
+    type: string
+  attention_focus:
+    type: array
+    items:
+      type: string
+  active_memories:
+    type: array
+    items:
+      type: object
+      required:
+        - name
+        - reason_used
+      properties:
+        name:
+          type: string
+        reason_used:
+          type: string
+  unfinished_reasoning:
+    type: array
+    items:
+      type: string
+  interaction_mode:
+    type: object
+    properties:
+      observed:
+        type: string
+      evidence:
+        type: array
+        items:
+          type: string
+  next_best_action:
+    type: array
+    items:
+      type: string
+  confidence:
+    type: object
+    required:
+      - snapshot_quality
+    properties:
+      snapshot_quality:
+        enum:
+          - low
+          - medium
+          - high
+

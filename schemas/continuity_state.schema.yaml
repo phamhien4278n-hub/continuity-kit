@@ -1,0 +1,51 @@
+id: "https://example.com/acp/schemas/continuity_state.schema.yaml"
+title: "ACP Continuity State"
+type: object
+required:
+  - version
+  - current_session_id
+  - turns_since_heartbeat
+  - idle_closure
+properties:
+  version:
+    type: integer
+  current_session_id:
+    type: string
+  last_user_message_at:
+    type: string
+    format: date-time
+  last_model_message_at:
+    type: string
+    format: date-time
+  last_heartbeat_at:
+    type: string
+    format: date-time
+  last_snapshot_at:
+    type: string
+    format: date-time
+  turns_since_heartbeat:
+    type: integer
+    minimum: 0
+  turns_since_snapshot:
+    type: integer
+    minimum: 0
+  idle_closure:
+    type: object
+    required:
+      - fired_for_current_gap
+    properties:
+      fired_for_current_gap:
+        type: boolean
+      last_gap_started_at:
+        type:
+          - string
+          - "null"
+        format: date-time
+  topic:
+    type: object
+    properties:
+      current_topic_label:
+        type: string
+      current_topic_hash:
+        type: string
+
