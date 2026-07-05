@@ -83,6 +83,7 @@ continuity:
 - **NOT a consciousness framework** — continuity means connection quality, not subjective experience.
 - **NOT a drop-in library** — v0.1 is a protocol specification. Reference implementations are planned for v0.2.
 - **NOT a replacement for memory systems** — it governs *how* memory is created and validated, not *what* is stored.
+- **NOT tied to a specific storage backend** — you bring your own (flat file, SQLite, Hindsight, etc.).
 
 ## Core Concepts
 
@@ -127,6 +128,28 @@ COMMERCIAL_LICENSE.md
 ROADMAP.md
 PRIVACY.md
 ```
+
+## Storage Backends
+
+ContinuityKit defines **what** state to store (heartbeats, snapshots, RELAY pointers). You choose **where** to store it. The protocol is storage-agnostic — pick the backend that fits your stack.
+
+| Backend | Best for | Complexity | Notes |
+|---------|----------|:--:|-------|
+| **Flat file** (YAML / JSON) | Prototyping, single-machine agents | 低 Low | Append a heartbeat block to a text file. Zero dependencies. |
+| **SQLite** | Production single-machine, audit trails | 中 Medium | Structured queries, transactional writes, built-in TTL via timestamps. |
+| **[Hindsight](https://github.com/nousresearch/hindsight)** | Multi-agent, semantic search, knowledge graphs | 高 High | Memory graph with entity linking, provenance tracking, and vector search. Best when you need to query *why* a state changed, not just *what* changed. |
+
+### When to upgrade from flat file to a database
+
+- You need to query snapshots across sessions (e.g. "show me all unresolved threads from the last week").
+- You want transactional guarantees so a crash mid-write doesn't corrupt state.
+- You're running multiple agents that share a continuity store.
+
+### Hindsight for advanced memory
+
+If you already use [Hindsight](https://github.com/nousresearch/hindsight) as your agent's long-term memory system, ContinuityKit fits naturally on top: heartbeats become Hindsight memories with `unit_type: continuity_heartbeat`, snapshots become `unit_type: session_snapshot`, and the RELAY protocol's task board maps to Hindsight's entity graph. This gives you semantic retrieval ("find sessions where I discussed X") and cross-agent continuity out of the box.
+
+> Reference implementations for flat-file and SQLite backends are planned for **v0.2**. For now, use the schemas in `schemas/` as your storage schema and wire up the read/write calls in your hook scripts.
 
 ## Getting Started
 
