@@ -1,9 +1,9 @@
 # ContinuityKit — Give Your AI Agent a Heartbeat
 
-**让你的 Hermes Agent 拥有心跳。记忆不够，让 Agent 活起来。**
+**让你的 AI Agent 拥有心跳。记忆不够，让 Agent 活起来。**
 **Memory is not enough. Give your agent a heartbeat.**
 
-**ContinuityKit** is a source-available toolkit and protocol for building AI agents that can pause, resume, self-check, and remember — without turning temporary thoughts into permanent truth. Think of it as a **heartbeat for your agent**: periodic state checkpoints that make long-running agents feel connected and auditable instead of starting from scratch every session.
+**ContinuityKit** is a source-available toolkit and protocol for building AI agents that can pause, resume, self-check, and remember — without turning temporary thoughts into permanent truth. Think of it as a **heartbeat for any AI agent**: periodic state checkpoints that make long-running agents feel connected and auditable instead of starting from scratch every session. Framework-agnostic — works with Hermes, Claude Code, Codex, or any runtime that supports hooks.
 
 It gives your agent a practical continuity layer:
 
@@ -22,7 +22,7 @@ It gives your agent a practical continuity layer:
 
 > 当 Agent 被打断、跨会话恢复、处理长期任务或管理记忆时，如何让它可靠、可审计、可治理地接上之前的状态？
 
-把它理解为 **给你的 Hermes Agent 装上心跳**——周期性状态校准 + 会话快照 + 记忆防污染，让 Agent 不再每个新会话都像"失忆了一样从头开始"。
+把它理解为 **给你的 Agent 装上心跳**——周期性状态校准 + 会话快照 + 记忆防污染，让 Agent 不再每个新会话都像"失忆了一样从头开始"。无论你用的是 Hermes、Claude Code 还是任何支持 hook 的 Agent 运行时。
 
 ## Introduction
 
